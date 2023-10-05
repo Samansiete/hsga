@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monedas Virtuales Geografía e Historia</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+
+        .form-container {
+            margin-top: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #555;
+        }
+
+        input[type="text"], input[type="password"] {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+        }
+
+        button[type="button"] {
+            width: 100%;
+            padding: 10px;
+            background-color: #007BFF;
+            border: none;
+            color: #fff;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+
+        button[type="button"]:hover {
+            background-color: #0056b3;
+        }
+
+        .user-panel {
+            display: none;
+            margin-top: 20px;
+        }
+
+        .user-panel h2 {
+            color: #555;
+            margin-top: 0;
+        }
+
+        .user-panel p {
+            border-top: 1px solid #ccc;
+            padding-top: 10px;
+            margin-top: 10px;
+        }
+
+        .user-panel button {
+            background-color: #dc3545;
+            color: #fff;
+            border: none;
+            border-radius: 3px;
+            padding: 5px 10px;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+
+        .user-panel button:hover {
+            background-color: #c82333;
+        }
+
+        .view-count {
+            text-align: center;
+            color: #555;
+            margin-top: 20px;
+            display: none;
+        }
+
+        .view-count span {
+            font-size: 24px;
+            font-weight: bold;
+        }
+    </style>
+    <script>
+        // Contraseña fija para la cuenta de Miguel
+        var contrasenaMiguel = "1234";
+
+        // Función para registrar un nuevo usuario
+        function registrarUsuario() {
+            var nuevoUsuario = document.getElementById("nuevoUsuario").value;
+            var nuevaContrasena = document.getElementById("nuevaContrasena").value;
+
+            // Verificar si el usuario ya existe
+            if (localStorage.getItem(nuevoUsuario) !== null) {
+                alert("El nombre de usuario ya está registrado. Por favor, elija otro.");
+                return;
+            }
+
+            if (!nuevoUsuario || !nuevaContrasena) {
+                alert("Por favor, complete todos los campos.");
+                return;
+            }
+
+            // Almacenar usuario y contraseña en el localStorage (simulación de base de datos)
+            localStorage.setItem(nuevoUsuario, nuevaContrasena);
+            localStorage.setItem(nuevoUsuario + "-saldo", 0); // Inicialmente, el saldo es 0
+
+            alert("Registro exitoso. Puede iniciar sesión.");
+        }
+
+        // Restringir el registro de usuarios duplicados
+        function validarNombreUsuario() {
+            var nuevoUsuario = document.getElementById("nuevoUsuario").value;
+            if (localStorage.getItem(nuevoUsuario) !== null) {
+                alert("El nombre de usuario ya está registrado. Por favor, elija otro.");
+                document.getElementById("nuevoUsuario").value = "";
+            }
+        }
+
+        // Función para iniciar sesión
+        function iniciarSesion() {
+            var usuario = document.getElementById("usuario").value;
+            var contrasena = document.getElementById("contrasena").value;
+
+            var storedContrasena = localStorage.getItem(usuario);
+
+            if (usuario === "Miguel" && contrasena === contrasenaMiguel) {
+                alert("Inicio de sesión exitoso.");
+                mostrarPanelUsuario(usuario);
+                mostrarListadoCuentas();
+                mostrarContadorVisualizaciones();
+            } else if (contrasena === storedContrasena) {
+                alert("Inicio de sesión exitoso.");
+                mostrarPanelUsuario(usuario);
+            } else {
+                alert("Credenciales incorrectas. Inténtalo de nuevo.");
+            }
+        }
+
+        // Función para mostrar el panel de usuario
+        function mostrarPanelUsuario(usuario) {
+            var inicioSesion = document.getElementById("inicioSesion");
+            inicioSesion.style.display = "none";
+
+            var panelUsuario = document.getElementById("panelUsuario");
+            panelUsuario.style.display = "block";
+
+            document.getElementById("nombreUsuario").textContent = usuario;
+
+            // Verificar si el usuario es "Miguel" para habilitar o deshabilitar los botones de agregar/quitar garbanzos
+            if (usuario === "Miguel") {
+                document.getElementById("agregarGarbanzosBtn").disabled = false;
+                document.getElementById("quitarGarbanzosBtn").disabled = false;
+                document.getElementById("saldoTexto").style.display = "none"; // Ocultar "Estos son tus garbanzos"
+            } else {
+                document.getElementById("agregarGarbanzosBtn").disabled = true;
+                document.getElementById("quitarGarbanzosBtn").disabled = true;
+                document.getElementById("saldoTexto").style.display = "block"; // Mostrar "Saldo:" para otros usuarios
+            }
+        }
+
+        // Función para mostrar un listado de todas las cuentas registradas y sus garbanzos
+        function mostrarListadoCuentas() {
+            var listadoCuentas = document.getElementById("listadoCuentas");
+            listadoCuentas.innerHTML = "<h2>Listado de Cuentas</h2>";
+
+            for (var i = 0; i < localStorage.length; i++) {
+                var clave = localStorage.key(i);
+                if (clave.endsWith("-saldo") && clave !== "Miguel-saldo") {
+                    var usuario = clave.replace("-saldo", "");
+                    var saldo = localStorage.getItem(clave);
+                    listadoCuentas.innerHTML += `
+                        <p>Usuario: ${usuario}, Saldo: ${saldo}
+                        ${usuario !== "Miguel" ? `<button onclick="eliminarCuenta('${usuario}')">Eliminar Cuenta</button>` : ''}
+                        </p>
+                    `;
+                }
+            }
+
+            listadoCuentas.style.display = "block"; // Mostrar el listado de cuentas
+        }
+
+        // Función para actualizar y mostrar el saldo del usuario
+        function actualizarSaldo(usuario) {
+            var saldo = obtenerSaldo(usuario);
+            document.getElementById("saldo").textContent = saldo;
+        }
+
+        // Función para obtener el saldo del usuario (simulación de saldo en el localStorage)
+        function obtenerSaldo(usuario) {
+            var saldo = localStorage.getItem(usuario + "-saldo");
+            return saldo ? parseInt(saldo) : 0;
+        }
+
+        // Función para agregar garbanzos
+        function agregarGarbanzos() {
+            var usuarioEditar = prompt("Ingrese el nombre de usuario para agregar garbanzos:");
+            var cantidad = parseInt(prompt("Ingrese la cantidad de garbanzos a agregar:"));
+
+            if (!usuarioEditar || !cantidad || isNaN(cantidad) || cantidad < 0) {
+                alert("Ingrese un nombre de usuario válido y una cantidad válida de garbanzos.");
+                return;
+            }
+
+            // Verificar si el usuario existe antes de agregar garbanzos
+            if (localStorage.getItem(usuarioEditar) === null) {
+                alert("El usuario no está registrado.");
+                return;
+            }
+
+            var saldoActual = obtenerSaldo(usuarioEditar);
+            var nuevoSaldo = saldoActual + cantidad;
+            localStorage.setItem(usuarioEditar + "-saldo", nuevoSaldo);
+            actualizarSaldo(usuarioEditar);
+            alert("Se agregaron " + cantidad + " garbanzos a la cuenta de " + usuarioEditar + ".");
+            mostrarListadoCuentas(); // Actualizar el listado de cuentas
+        }
+
+        // Función para quitar garbanzos
+        function quitarGarbanzos() {
+            var usuarioEditar = prompt("Ingrese el nombre de usuario para quitar garbanzos:");
+            var cantidad = parseInt(prompt("Ingrese la cantidad de garbanzos a quitar:"));
+
+            if (!usuarioEditar || !cantidad || isNaN(cantidad) || cantidad < 0) {
+                alert("Ingrese un nombre de usuario válido y una cantidad válida de garbanzos.");
+                return;
+            }
+
+            // Verificar si el usuario existe antes de quitar garbanzos
+            if (localStorage.getItem(usuarioEditar) === null) {
+                alert("El usuario no está registrado.");
+                return;
+            }
+
+            var saldoActual = obtenerSaldo(usuarioEditar);
+            if (saldoActual >= cantidad) {
+                var nuevoSaldo = saldoActual - cantidad;
+                localStorage.setItem(usuarioEditar + "-saldo", nuevoSaldo);
+                actualizarSaldo(usuarioEditar);
+                alert("Se quitaron " + cantidad + " garbanzos de la cuenta de " + usuarioEditar + ".");
+                mostrarListadoCuentas(); // Actualizar el listado de cuentas
+            } else {
+                alert("No hay suficientes garbanzos en la cuenta de " + usuarioEditar + ".");
+            }
+        }
+
+        // Función para eliminar una cuenta
+        function eliminarCuenta(usuario) {
+            if (confirm(`¿Está seguro de eliminar la cuenta de ${usuario}?`)) {
+                localStorage.removeItem(usuario);
+                localStorage.removeItem(usuario + "-saldo");
+                mostrarListadoCuentas(); // Actualizar el listado de cuentas
+            }
+        }
+
+        // Función para cerrar sesión
+        function cerrarSesion() {
+            var inicioSesion = document.getElementById("inicioSesion");
+            inicioSesion.style.display = "block";
+
+            var panelUsuario = document.getElementById("panelUsuario");
+            panelUsuario.style.display = "none";
+
+            document.getElementById("usuario").value = "";
+            document.getElementById("contrasena").value = "";
+
+            var listadoCuentas = document.getElementById("listadoCuentas");
+            listadoCuentas.innerHTML = ""; // Limpiar el listado de cuentas al cerrar sesión
+            listadoCuentas.style.display = "none"; // Ocultar el listado de cuentas
+
+            var contadorVisualizaciones = document.getElementById("contadorVisualizaciones");
+            contadorVisualizaciones.style.display = "none"; // Ocultar el contador de visualizaciones
+        }
+
+        // Función para contar las visualizaciones de la página
+        function contarVisualizaciones() {
+            var contador = localStorage.getItem("contador") || 0;
+            contador = parseInt(contador) + 1;
+            localStorage.setItem("contador", contador);
+            document.getElementById("contadorVisualizaciones").textContent = contador;
+        }
+
+        // Función para mostrar el contador de visualizaciones solo si el usuario es Miguel
+        function mostrarContadorVisualizaciones() {
+            var usuario = document.getElementById("usuario").value;
+            if (usuario === "Miguel") {
+                var contador = localStorage.getItem("contador") || 0;
+                document.getElementById("contadorVisualizaciones").textContent = contador;
+                document.getElementById("contadorVisualizaciones").style.display = "block";
+            }
+        }
+
+        window.onload = contarVisualizaciones;
+    </script>
+</head>
+<body>
+    <div class="container" id="inicioSesion">
+        <h1>Iniciar Sesión</h1>
+        <div class="form-container">
+            <label for="usuario">Usuario:</label>
+            <input type="text" id="usuario" name="usuario" required><br>
+            <label for="contrasena">Contraseña:</label>
+            <input type="password" id="contrasena" name="contrasena" required><br>
+            <button type="button" onclick="iniciarSesion()">Iniciar Sesión</button>
+        </div>
+        <p>¿No tienes una cuenta? Regístrate a continuación:</p>
+        <div class="form-container">
+            <label for="nuevoUsuario">Nuevo Usuario:</label>
+            <input type="text" id="nuevoUsuario" name="nuevoUsuario" required onchange="validarNombreUsuario()"><br>
+            <label for="nuevaContrasena">Nueva Contraseña:</label>
+            <input type="password" id="nuevaContrasena" name="nuevaContrasena" required><br>
+            <button type="button" onclick="registrarUsuario()">Registrar</button>
+        </div>
+    </div>
+
+    <div class="container user-panel" id="panelUsuario" style="display: none;">
+        <h1>Panel de Usuario</h1>
+        <p>Bienvenido, <span id="nombreUsuario"></span>!</p>
+        <button id="agregarGarbanzosBtn" onclick="agregarGarbanzos()">Agregar Garbanzos</button>
+        <button id="quitarGarbanzosBtn" onclick="quitarGarbanzos()">Quitar Garbanzos</button>
+        <button onclick="cerrarSesion()">Cerrar Sesión</button>
+        <div id="saldoTexto">Saldo: <span id="saldo">0</span></div>
+        <div id="listadoCuentas"></div>
+    </div>
+
+    <div class="container view-count">
+        <p>Contador de Visualizaciones: <span id="contadorVisualizaciones">0</span></p>
+    </div>
+</body>
+</html>
